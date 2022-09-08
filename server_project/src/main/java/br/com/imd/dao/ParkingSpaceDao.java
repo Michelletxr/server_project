@@ -3,6 +3,7 @@ package br.com.imd.dao;
 import br.com.imd.factory.ConnetionFactory;
 import br.com.imd.model.ParkingSpace;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +16,12 @@ public class ParkingSpaceDao {
         this.connection = connection;
     }
 
-    public Integer saveParkingSpace(ParkingSpace newParkingSpace ) {
+    public Integer saveParkingSpace(ParkingSpace newParkingSpace ) throws SQLException {
+
 
         Integer idParkingSpace = null;
         try{
+            connection.setAutoCommit(false);
             PreparedStatement stm =  connection.prepareStatement("INSERT INTO parking_space (license_plate," +
                     " hours_total, hours_init, value) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS);
             stm.setString(1, newParkingSpace.getLicensePlate()); //inserindo o numero da placa
@@ -32,10 +35,11 @@ public class ParkingSpaceDao {
             while (result.next()){
                 idParkingSpace = result.getInt(1);
             }
-
+            connection.commit();
             result.close();
             stm.close();
         }catch (SQLException e){
+            connection.rollback();
             System.err.println("não foi possível realizar a operação save"+ e.getStackTrace());
         }
 
@@ -54,13 +58,13 @@ public class ParkingSpaceDao {
         return isDelet;
     }
 
-    public ParkingSpace findParkingSpaceById(Integer id){
+    public ParkingSpace findParkingSpaceById(String id){
         ParkingSpace parkingSpace = null;
 
         try{
 
             PreparedStatement stm = connection.prepareStatement("SELECT * FROM parking_space WHERE id=?");
-            stm.setInt(1, id);
+            stm.setInt(1, Integer.parseInt(id));
             stm.execute();
             ResultSet result = stm.executeQuery();
 
@@ -103,6 +107,8 @@ public class ParkingSpaceDao {
         ParkingSpaceDao dao = new ParkingSpaceDao(ConnetionFactory.getConnetion());
         ParkingSpace teste = new ParkingSpace();
         teste.setLicensePlate("TESTE123");
+        teste.setHours(5);
+        teste.setValue(10);
         dao.saveParkingSpace(teste);
 
         for (int i = 0; i < 25; i++) {

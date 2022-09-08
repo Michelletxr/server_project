@@ -11,7 +11,7 @@ public class ConnetionFactory {
 
     private ConnetionFactory() {
         ComboPooledDataSource pool = new ComboPooledDataSource();
-        pool.setJdbcUrl( "jdbc:postgresql://localhost/parking_db");
+        pool.setJdbcUrl( "jdbc:postgresql://localhost:5432/parking_db");
         pool.setUser("postgres");
         pool.setPassword("postgres");
         pool.setMaxPoolSize(20);

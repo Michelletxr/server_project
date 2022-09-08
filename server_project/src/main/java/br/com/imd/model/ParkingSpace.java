@@ -39,8 +39,10 @@ public class ParkingSpace {
 
     @Override
     public String toString() {
-        return "ParkingSpace{" +
-                "licensePlate='" + licensePlate + '\'' +
+        return "{" +
+                "licensePlate:" + licensePlate + "," +
+                "hours_init:" + hoursInit + ","+
+                "hours_total:" + hours +
                 '}';
     }
 
