@@ -1,5 +1,6 @@
 package br.com.imd.dto;
 import br.com.imd.model.ParkingSpace;
+import br.com.imd.model.ResponseObj;
 import com.google.common.base.Splitter;
 
 import java.util.Map;
@@ -8,13 +9,29 @@ import java.util.Map;
 public class ParkingSpaceDto {
 
     public static String getIdToString(String str){
-        String id = str.replaceAll("[id option SAVE FIND CREATE REMOVE :,]", "");
+        String data = convertStringToProprietes(str).get("data");
+        String id = convertStringToProprietes(str).get("id");
         return id;
     }
 
-    public static ParkingSpace convertRequestToData(String str){
-
+    public static String getTargetToString(String str){
+        String target = convertStringToProprietes(str).get("target");
+       return target;
+    }
+    public static String convertStringToMsg(String str){
         String dados = str.replaceAll("[^A-Za-z0-9:,]", "");
+        return dados;
+    }
+
+    public static  Map<String, String>  convertStringToProprietes(String str){
+        String dados = convertStringToMsg(str);
+        Map<String, String> properties = Splitter.on(",")
+                .withKeyValueSeparator(":")
+                .split(dados);
+        return properties;
+    }
+    public static ParkingSpace convertRequestToData(String str){
+        String dados = convertStringToMsg(str);
         Map<String, String> properties = Splitter.on(",")
                 .withKeyValueSeparator(":")
                 .split(dados);
@@ -33,7 +50,7 @@ public class ParkingSpaceDto {
     }
 
     public static ParkingSpace convertStringToParkingSpace(String str){
-        String dados = str.replaceAll("[^A-Za-z0-9:,]", "");
+        String dados = convertStringToMsg(str);
         Map<String, String> properties = Splitter.on(",")
                 .withKeyValueSeparator(":")
                 .split(dados);
@@ -55,13 +72,10 @@ public class ParkingSpaceDto {
         return parkingSpace;
     }
 
-    public static String convertStringToMsg(String str){
-        String dados = str.replaceAll("[^A-Za-z0-9:,]", "");
-        return dados;
+    public static  String generateResponseObj( String target, String action, String data){
+        ResponseObj response = new ResponseObj(target, action, data);
+        return response.toString();
     }
 
-    public static String formatDataToResponse(String msg, String value){
 
-        return null;
-    }
 }

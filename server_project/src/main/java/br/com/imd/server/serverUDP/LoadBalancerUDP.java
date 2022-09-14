@@ -2,9 +2,9 @@ package br.com.imd.server.serverUDP;
 
 import br.com.imd.dto.ParkingSpaceDto;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LoadBalancerUDP extends ServerUDP {
     private Integer myPort;
@@ -12,43 +12,75 @@ public class LoadBalancerUDP extends ServerUDP {
     private Integer parkingPort;
     private InetAddress clientAdrr;
     private Integer clientPort;
+    private List<Integer> parkingsServers;
+    private List<Integer> daoServers;
 
     public LoadBalancerUDP(Integer port) {
         this.myPort = port;
+        parkingsServers = new ArrayList<>();
+        parkingsServers.add(8081);
+        daoServers = new ArrayList<>();
+        daoServers.add(8082);
         daoPort = 8082;
         parkingPort = 8081;
     }
 
+    public void updateServer(List<Integer> serverPorts){
+        //implement
+    }
+
+    public String dialogServices(String request, List<Integer> serverPorts){
+            //implement
+        return null;
+    }
+
+    @Override
+    public void generateResponseToSend(String requestMsg)  {
+
+        String target = ParkingSpaceDto.getTargetToString(requestMsg);
+        System.out.println("request " + requestMsg);
+        System.out.println("TARGET: " + target);
+        try{
+            switch (target){
+                case "BD":
+                    sendData(requestMsg, InetAddress.getByName("localhost"), daoPort);
+                    break;
+                case "PARKING":
+                    sendData(requestMsg, InetAddress.getByName("localhost"), parkingPort);
+                    break;
+                case "CLIENT":
+                    sendData(requestMsg, clientAdrr, clientPort);
+                    break;
+
+                default:
+                    sendData("erro", this.adrReceive, this.portReceive);
+            }
+        }catch (IOException e){
+            System.out.println(e);
+        }
+
+    }
+
     @Override
     public void startServer() throws IOException {
+
         this.socket = new DatagramSocket(this.myPort);
         System.out.println("iniciando serviço load balancer na porta:" + socket.getLocalPort());
+        String requestMsg = receiveDataClient();
 
+        while (true) {
+            generateResponseToSend(requestMsg);
+            requestMsg = receiveData();
 
-        while (true){
-
-            String requestMsg = null;
-            String responseMsg = null;
-            requestMsg = receiveDataClient();
-            String msg = ParkingSpaceDto.convertStringToMsg(requestMsg);
-            System.out.println("mensagem: " + msg);
-
-            if(msg.contains("estacionar")){
-                sendData(msg.replace("estacionar", "SAVE"), InetAddress.getByName("localhost"), daoPort);
-                String msgId = ParkingSpaceDto.convertStringToMsg(receiveData());
-                if(!"".equals(msgId)) {
-                    sendData("CREATE".concat(msgId), InetAddress.getByName("localhost"), parkingPort);
-                    responseMsg = receiveData();
-                }
-            }
-            if(msg.contains("retirar")){
-                sendData(msg.replace("retirar", "REMOVE"), InetAddress.getByName("localhost"), parkingPort);
-                responseMsg = receiveData();
-            }
-            sendData(responseMsg, clientAdrr, clientPort);
         }
     }
 
+    @Override
+    public void stopServer() {
+        this.socket.close();
+    }
+
+    //removr isso
     private String receiveDataClient() {
         String msg = null;
         try {
@@ -63,11 +95,6 @@ public class LoadBalancerUDP extends ServerUDP {
 
         }
         return msg;
-    }
-
-    @Override
-    public void stopServer() {
-       this.socket.close();
     }
 
     public static void main(String[] args) {

@@ -14,7 +14,7 @@ public class ConnetionFactory {
         pool.setJdbcUrl( "jdbc:postgresql://localhost:5432/parking_db");
         pool.setUser("postgres");
         pool.setPassword("postgres");
-        pool.setMaxPoolSize(20);
+        pool.setMaxPoolSize(30);
         this.dataSource = pool;
     }
 

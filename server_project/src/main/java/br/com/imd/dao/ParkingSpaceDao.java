@@ -3,7 +3,6 @@ package br.com.imd.dao;
 import br.com.imd.factory.ConnetionFactory;
 import br.com.imd.model.ParkingSpace;
 
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,17 +10,14 @@ import java.util.List;
 
 public class ParkingSpaceDao {
     private Connection connection;
-
-    public ParkingSpaceDao(Connection connection){
-        this.connection = connection;
+    public ParkingSpaceDao(){
     }
 
-    public Integer saveParkingSpace(ParkingSpace newParkingSpace ) throws SQLException {
-
+    public Integer saveParkingSpace(ParkingSpace newParkingSpace ) {
 
         Integer idParkingSpace = null;
         try{
-            connection.setAutoCommit(false);
+            this.connection = ConnetionFactory.getConnetion();
             PreparedStatement stm =  connection.prepareStatement("INSERT INTO parking_space (license_plate," +
                     " hours_total, hours_init, value) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS);
             stm.setString(1, newParkingSpace.getLicensePlate()); //inserindo o numero da placa
@@ -35,23 +31,26 @@ public class ParkingSpaceDao {
             while (result.next()){
                 idParkingSpace = result.getInt(1);
             }
-            connection.commit();
             result.close();
             stm.close();
+            connection.close();
         }catch (SQLException e){
-            connection.rollback();
             System.err.println("não foi possível realizar a operação save"+ e.getStackTrace());
         }
 
         return idParkingSpace;
     }
     public boolean deleteParkingSpace(Integer id){
+
         boolean isDelet = false;
         try{
+            this.connection = ConnetionFactory.getConnetion();
             PreparedStatement stm = connection.prepareStatement("DELETE FROM parking_space WHERE id=?");
             stm.setInt(1, id);
             stm.execute();
+            stm.close();
             isDelet = true;
+            connection.close();
         }catch (SQLException e){
             System.err.println("não foi possível realizar a operação delete"+ e.getStackTrace());
         }
@@ -59,9 +58,11 @@ public class ParkingSpaceDao {
     }
 
     public ParkingSpace findParkingSpaceById(String id){
+
         ParkingSpace parkingSpace = null;
 
         try{
+            this.connection = ConnetionFactory.getConnetion();
 
             PreparedStatement stm = connection.prepareStatement("SELECT * FROM parking_space WHERE id=?");
             stm.setInt(1, Integer.parseInt(id));
@@ -75,6 +76,9 @@ public class ParkingSpaceDao {
                 parkingSpace.setValue(result.getInt("value"));
                 parkingSpace.setHoursInit(result.getInt("hours_init"));
             }
+            result.close();
+            stm.close();
+            connection.close();
 
         }catch (SQLException e){
             System.err.println("não foi possível realizar a operação find" + e.getStackTrace());
@@ -104,7 +108,7 @@ public class ParkingSpaceDao {
     }
 
     public static void main(String[] args) throws InterruptedException, SQLException {
-        ParkingSpaceDao dao = new ParkingSpaceDao(ConnetionFactory.getConnetion());
+        ParkingSpaceDao dao = new ParkingSpaceDao();
         ParkingSpace teste = new ParkingSpace();
         teste.setLicensePlate("TESTE123");
         teste.setHours(5);
