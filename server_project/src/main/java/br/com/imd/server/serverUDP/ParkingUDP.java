@@ -18,25 +18,19 @@ public class ParkingUDP extends ServerUDP {
     }
 
     @Override
-    public void generateResponseToSend(String requestMsg) {
-        String msg = ParkingSpaceDto.convertStringToMsg(requestMsg);
-        System.out.println("mensagem: " + msg);
+    public String generateResponseToSend(String request) {
+        String resquestMsg = ParkingSpaceDto.convertStringToMsg(request);
+        System.out.println("mensagem: " + resquestMsg);
         String response = null;
-
-        try {
-            if(msg.contains("CREATE")) {
-                ParkingSpace parkingSpace = ParkingSpaceDto.convertStringToParkingSpace(receiveData());
+            if(resquestMsg.contains("CREATE")) {
+                ParkingSpace parkingSpace = ParkingSpaceDto.convertStringToParkingSpace(resquestMsg);
                 Integer taxa = parking.createTaxa(parkingSpace.getHoursInit(), parkingSpace.getHours());
                 String data = "MENSAGEM: carro retirado; valor a pagar = " +  parkingSpace.getValue() + " sua taxa = " + taxa;
                 response = ParkingSpaceDto.generateResponseObj("CLIENT", "CREATE", data);
             }
-
             System.out.println("response " + response);
-            sendData(response,this.adrReceive, this.portReceive);
 
-        }catch (Exception e){
-            System.out.println(e);
-        }
+        return response;
     }
 
     @Override
@@ -46,7 +40,8 @@ public class ParkingUDP extends ServerUDP {
 
         while (true){
             String requestData = receiveData();
-            this.generateResponseToSend(requestData);
+            String response = this.generateResponseToSend(requestData);
+            sendData(response, this.adrReceive, this.portReceive);
         }
     }
     @Override
@@ -63,7 +58,7 @@ public class ParkingUDP extends ServerUDP {
             server.stopServer();
 
         }catch (IOException e){
-            System.err.println("não foi possível conectar ao sevirdor" + e.getStackTrace());
+            System.err.println("não foi possível conectar ao sevidor" + e.getStackTrace());
         }
     }
 }

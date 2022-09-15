@@ -2,13 +2,12 @@ package br.com.imd.server.serverUDP;
 
 import br.com.imd.dao.ParkingSpaceDao;
 import br.com.imd.dto.ParkingSpaceDto;
-import br.com.imd.factory.ConnetionFactory;
 import br.com.imd.model.ParkingSpace;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class DaoConnetionUDP extends ServerUDP {
     private ParkingSpaceDao dao;
@@ -16,16 +15,16 @@ public class DaoConnetionUDP extends ServerUDP {
 
     public DaoConnetionUDP(int port) {
         this.port = port;
+        this.dao = new ParkingSpaceDao();
     }
 
-    public String save(ParkingSpace parkingSpace){
-       String id = null;
-        this.dao = new ParkingSpaceDao();
+    public String save(ParkingSpace parkingSpace) throws SQLException {
+        String id = null;
         id = dao.saveParkingSpace(parkingSpace).toString();
         return id;
     }
 
-    public String findById(String id){
+    public String findById(String id) throws SQLException {
         ParkingSpace parkingSpace= dao.findParkingSpaceById(id);
         System.out.println("parking" + parkingSpace);
         return parkingSpace.toString();
@@ -33,40 +32,47 @@ public class DaoConnetionUDP extends ServerUDP {
 
 
     @Override
-    public void generateResponseToSend(String requestMsg) {
+    public String generateResponseToSend(String requestMsg) {
         String response = null;
 
-
-
-        try {
             String msg = ParkingSpaceDto.convertStringToMsg(requestMsg);
             String data = null;
             System.out.println("MENSAGEM:" + msg );
 
             if(msg.contains("SAVE")){
-                ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToData(requestMsg);
-                String id = this.save(parkingSpace);
-                response =  ParkingSpaceDto.generateResponseObj("CLIENT", "SAVE",
-                        "MENSAGEM: vaga de estacionamento gerada com sucesso id = "+id);
+                try{
+                    ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToData(requestMsg);
+                    String id = this.save(parkingSpace);
+                    response =  ParkingSpaceDto.generateResponseObj("CLIENT", "SAVE",
+                            "MENSAGEM: vaga de estacionamento gerada com sucesso id = "+id);
+                }catch (SQLException e){
+                    response =  ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
+                            "MENSAGEM: não foi possível gerar a vaga de estacionamento.");
+                }
+
             }
 
+
             if(requestMsg.contains("REMOVE")){
-                String id = ParkingSpaceDto.getIdToString(requestMsg);
-                String parking_space = this.findById(id);
-                if(dao.deleteParkingSpace(Integer.parseInt(id))){
-                    response = ParkingSpaceDto.generateResponseObj("PARKING", "CREATE", parking_space.toString());
-                }else{
+                try{
+                    String id = ParkingSpaceDto.getIdToString(requestMsg);
+                    String parking_space = this.findById(id);
+                    if(Objects.isNull(parking_space)) throw  new Exception();
+                    if(dao.deleteParkingSpace(Integer.parseInt(id))){
+                        response = ParkingSpaceDto.generateResponseObj("PARKING", "CREATE", parking_space.toString());
+                    }else{
+                        response =  ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
+                                "MENSAGEM: não foi possível remover a vaga ");
+                    }
+                }catch (Exception e){
                     response =  ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
-                            "MENSAGEM: vaga de estacionamento inválida ");
+                            "MENSAGEM: vaga de estacionamento inválida.");
                 }
             }
 
             System.out.println(response);
-            sendData(response, this.adrReceive, this.portReceive);
-
-        }catch (IOException e){
-            System.out.println(e);
-        }
+            //sendData(response, this.adrReceive, this.portReceive);
+        return response;
     }
 
     @Override
@@ -76,7 +82,8 @@ public class DaoConnetionUDP extends ServerUDP {
 
         while (true) {
             String requestData = receiveData();
-            this.generateResponseToSend(requestData);
+            String response = this.generateResponseToSend(requestData);
+            sendData(response, this.adrReceive, this.portReceive);
         }
     }
 

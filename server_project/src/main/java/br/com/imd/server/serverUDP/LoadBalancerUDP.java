@@ -18,60 +18,84 @@ public class LoadBalancerUDP extends ServerUDP {
     public LoadBalancerUDP(Integer port) {
         this.myPort = port;
         parkingsServers = new ArrayList<>();
-        parkingsServers.add(8081);
         daoServers = new ArrayList<>();
+        daoServers.add(8081);
         daoServers.add(8082);
-        daoPort = 8082;
-        parkingPort = 8081;
+        parkingsServers.add(8083);
+        parkingsServers.add(8084);
     }
 
     public void updateServer(List<Integer> serverPorts){
-        //implement
+        System.out.println("----------atualizando server-----------------");
+        serverPorts.add(serverPorts.get(0));
+        serverPorts.remove(0);
     }
 
     public String dialogServices(String request, List<Integer> serverPorts){
-            //implement
-        return null;
+        String response = null;
+        System.out.println(serverPorts);
+        try {
+            byte[] sendMsg = request.getBytes();
+            InetAddress inetAddress = InetAddress.getByName("localhost");
+            DatagramPacket sendPacket = new DatagramPacket(sendMsg, request.length(),
+                    inetAddress, serverPorts.get(0));
+            socket.send(sendPacket);
+
+            byte[] responseData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(responseData, responseData.length);
+            socket.receive(receivePacket);
+            response = new String(receivePacket.getData());
+            System.out.println("responseeeee" + response);
+        }catch (IOException e){
+            System.out.println("oiiiiiiiiii");
+            updateServer(serverPorts);
+            dialogServices(request, serverPorts);
+        }catch (RuntimeException e){
+            System.out.println("oiiiiiiiiii");
+            response = ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
+                    "MENSAGEM: erro ao requisitar serviço");
+        }
+
+        return response;
     }
 
     @Override
-    public void generateResponseToSend(String requestMsg)  {
+    public String generateResponseToSend(String requestMsg)  {
 
         String target = ParkingSpaceDto.getTargetToString(requestMsg);
+        String serverResponse = null;
+        String serverRequest = requestMsg;
         System.out.println("request " + requestMsg);
-        System.out.println("TARGET: " + target);
-        try{
+
+        while(!"CLIENT".equals(target)) {
+
+            System.out.println("TARGET: " + target);
             switch (target){
                 case "BD":
-                    sendData(requestMsg, InetAddress.getByName("localhost"), daoPort);
+                    serverResponse = dialogServices(serverRequest, daoServers);
                     break;
                 case "PARKING":
-                    sendData(requestMsg, InetAddress.getByName("localhost"), parkingPort);
+                    serverResponse = dialogServices(serverRequest, parkingsServers);
                     break;
-                case "CLIENT":
-                    sendData(requestMsg, clientAdrr, clientPort);
-                    break;
-
                 default:
-                    sendData("erro", this.adrReceive, this.portReceive);
+                    break;
             }
-        }catch (IOException e){
-            System.out.println(e);
+            target = ParkingSpaceDto.getTargetToString(serverResponse);
+            serverRequest = serverResponse;
         }
 
+        return serverResponse;
     }
 
     @Override
     public void startServer() throws IOException {
-
         this.socket = new DatagramSocket(this.myPort);
         System.out.println("iniciando serviço load balancer na porta:" + socket.getLocalPort());
-        String requestMsg = receiveDataClient();
 
         while (true) {
-            generateResponseToSend(requestMsg);
-            requestMsg = receiveData();
-
+            String requestMsg = receiveData();
+            String response = generateResponseToSend(requestMsg);
+            sendData(response, this.adrReceive, this.portReceive);
         }
     }
 
@@ -80,8 +104,7 @@ public class LoadBalancerUDP extends ServerUDP {
         this.socket.close();
     }
 
-    //removr isso
-    private String receiveDataClient() {
+ /*   private String receiveDataClient() {
         String msg = null;
         try {
             byte[] receiveData = new byte[1024];
@@ -95,7 +118,7 @@ public class LoadBalancerUDP extends ServerUDP {
 
         }
         return msg;
-    }
+    }*/
 
     public static void main(String[] args) {
        ServerUDP server = new LoadBalancerUDP(8080);

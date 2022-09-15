@@ -13,10 +13,9 @@ public class ParkingSpaceDao {
     public ParkingSpaceDao(){
     }
 
-    public Integer saveParkingSpace(ParkingSpace newParkingSpace ) {
+    public Integer saveParkingSpace(ParkingSpace newParkingSpace ) throws SQLException {
 
         Integer idParkingSpace = null;
-        try{
             this.connection = ConnetionFactory.getConnetion();
             PreparedStatement stm =  connection.prepareStatement("INSERT INTO parking_space (license_plate," +
                     " hours_total, hours_init, value) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS);
@@ -34,13 +33,11 @@ public class ParkingSpaceDao {
             result.close();
             stm.close();
             connection.close();
-        }catch (SQLException e){
-            System.err.println("não foi possível realizar a operação save"+ e.getStackTrace());
-        }
+
 
         return idParkingSpace;
     }
-    public boolean deleteParkingSpace(Integer id){
+    public boolean deleteParkingSpace(Integer id) throws RuntimeException {
 
         boolean isDelet = false;
         try{
@@ -52,16 +49,16 @@ public class ParkingSpaceDao {
             isDelet = true;
             connection.close();
         }catch (SQLException e){
-            System.err.println("não foi possível realizar a operação delete"+ e.getStackTrace());
+           System.out.println("erro ao tentar deletar");
         }
         return isDelet;
     }
 
-    public ParkingSpace findParkingSpaceById(String id){
+    public ParkingSpace findParkingSpaceById(String id) throws SQLException {
 
         ParkingSpace parkingSpace = null;
 
-        try{
+
             this.connection = ConnetionFactory.getConnetion();
 
             PreparedStatement stm = connection.prepareStatement("SELECT * FROM parking_space WHERE id=?");
@@ -80,9 +77,7 @@ public class ParkingSpaceDao {
             stm.close();
             connection.close();
 
-        }catch (SQLException e){
-            System.err.println("não foi possível realizar a operação find" + e.getStackTrace());
-        }
+
         return parkingSpace;
     }
 

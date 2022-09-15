@@ -19,12 +19,12 @@ public class LoadBalancerTCP extends ServerTCP {
 
     public LoadBalancerTCP(Integer port) {
         this.port = port;
-        daoPort = 8082;
-        parkingPort = 8081;
         parkingsServers = new ArrayList<>();
         daoServers = new ArrayList<>();
-        parkingsServers.add(parkingPort);
-        daoServers.add(daoPort);
+        daoServers.add(8081);
+        daoServers.add(8082);
+        parkingsServers.add(8083);
+        parkingsServers.add(8084);
     }
 
     public void startServer() throws IOException {
@@ -62,6 +62,7 @@ public class LoadBalancerTCP extends ServerTCP {
     }
 
     public void updateServer(List<Integer> serverPorts){
+        System.out.println("----------atualizando server-----------------");
         serverPorts.add(serverPorts.get(0));
         serverPorts.remove(0);
     }
@@ -83,7 +84,7 @@ public class LoadBalancerTCP extends ServerTCP {
         }catch (ConnectException e){
             System.out.println(e);
             updateServer(serverPorts);
-           msg = dialogServices(request, serverPorts);
+            msg = dialogServices(request, serverPorts);
 
         }
         return msg;
@@ -94,7 +95,6 @@ public class LoadBalancerTCP extends ServerTCP {
         String target = ParkingSpaceDto.getTargetToString(requestMsg);
         System.out.println("request " + requestMsg);
         String response = null;
-        Socket socketService = null;
         String serverResponse =  null;
         String requestService = requestMsg;
 
@@ -115,7 +115,6 @@ public class LoadBalancerTCP extends ServerTCP {
                 target = ParkingSpaceDto.getTargetToString(requestService);
             }
             System.out.println("server"+ serverResponse);
-            socketService.close();
             response = serverResponse;
         }catch (Exception e){
             System.out.println("ocorreu um erro ao gerar resposta");

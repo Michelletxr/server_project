@@ -1,8 +1,5 @@
 package br.com.imd.server.serverUDP;
 
-import br.com.imd.dao.ParkingSpaceDao;
-import br.com.imd.model.ResponseObj;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -16,7 +13,7 @@ public abstract class ServerUDP {
 
     protected DatagramSocket socket;
 
-    public abstract void generateResponseToSend(String requestMsg) throws UnknownHostException;
+    public abstract String generateResponseToSend(String requestMsg) throws UnknownHostException;
 
     public String receiveData()  throws IOException {
         byte[] receiveData = new byte[1024];
@@ -35,7 +32,6 @@ public abstract class ServerUDP {
         DatagramPacket sendPacket = new DatagramPacket(sendMsg,sendMsg.length, address, port);
         socket.send(sendPacket);
     }
-
 
     public abstract  void startServer() throws IOException;
 

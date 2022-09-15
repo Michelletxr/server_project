@@ -6,6 +6,8 @@ import br.com.imd.model.ParkingSpace;
 
 import java.io.*;
 import java.net.ServerSocket;
+import java.sql.SQLException;
+import java.util.Objects;
 
 
 public class DaoConnetionTCP extends ServerTCP{
@@ -39,21 +41,32 @@ public class DaoConnetionTCP extends ServerTCP{
 
             //salvar no banco
             if(requestMsg.contains("SAVE")){
-                ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToData(requestMsg);
-                String id = this.save(parkingSpace);
-                response =  ParkingSpaceDto.generateResponseObj("CLIENT", "SAVE",
-                        "MENSAGEM: vaga de estacionamento gerada com sucesso id = "+id);
+                try{
+                    ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToData(requestMsg);
+                    String id = this.save(parkingSpace);
+                    response =  ParkingSpaceDto.generateResponseObj("CLIENT", "SAVE",
+                            "MENSAGEM: vaga de estacionamento gerada com sucesso id = "+id);
+                }catch (SQLException e){
+                    response =  ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
+                            "MENSAGEM: não foi possível gerar a vaga de estacionamento.");
+                }
+
             }
             //remover vaga
             if(requestMsg.contains("REMOVE")){
-                String id = ParkingSpaceDto.getIdToString(requestMsg);
-                String parking_space = this.findById(id);
-                System.out.println(id);
-                if(dao.deleteParkingSpace(Integer.parseInt(id))){
-                    response = ParkingSpaceDto.generateResponseObj("PARKING", "CREATE", parking_space.toString());
-                }else{
+                try{
+                    String id = ParkingSpaceDto.getIdToString(requestMsg);
+                    String parking_space = this.findById(id);
+                    if(Objects.isNull(parking_space)) throw new Exception();
+                    if(dao.deleteParkingSpace(Integer.parseInt(id))){
+                        response = ParkingSpaceDto.generateResponseObj("PARKING", "CREATE", parking_space.toString());
+                    }else{
+                        response =  ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
+                                "MENSAGEM: não foi possível remover a vaga ");
+                    }
+                }catch (Exception e){
                     response =  ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
-                            "MENSAGEM: vaga de estacionamento inválida ");
+                            "MENSAGEM: vaga de estacionamento inválida.");
                 }
             }
 
@@ -61,12 +74,12 @@ public class DaoConnetionTCP extends ServerTCP{
 
     }
 
-    public String save(ParkingSpace parkingSpace){
+    public String save(ParkingSpace parkingSpace) throws SQLException {
         String id = dao.saveParkingSpace(parkingSpace).toString();
         return id;
     }
 
-    public String findById(String id){
+    public String findById(String id) throws SQLException {
         ParkingSpace parkingSpace= dao.findParkingSpaceById(id);
         System.out.println("parking" + parkingSpace);
         return parkingSpace.toString();
