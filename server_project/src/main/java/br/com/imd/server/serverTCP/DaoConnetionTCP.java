@@ -2,6 +2,7 @@ package br.com.imd.server.serverTCP;
 
 import br.com.imd.dao.ParkingSpaceDao;
 import br.com.imd.dto.ParkingSpaceDto;
+import br.com.imd.factory.ConnetionFactory;
 import br.com.imd.model.ParkingSpace;
 
 import java.io.*;
@@ -39,10 +40,12 @@ public class DaoConnetionTCP extends ServerTCP{
         System.out.println("resquest " + requestMsg);
         String response = null;
 
+        this.dao.setConnection(ConnetionFactory.getConnetion());
+
             //salvar no banco
             if(requestMsg.contains("SAVE")){
                 try{
-                    ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToData(requestMsg);
+                    ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToParkingSpace(requestMsg);
                     String id = this.save(parkingSpace);
                     response =  ParkingSpaceDto.generateResponseObj("CLIENT", "SAVE",
                             "MENSAGEM: vaga de estacionamento gerada com sucesso id = "+id);
@@ -56,6 +59,7 @@ public class DaoConnetionTCP extends ServerTCP{
             if(requestMsg.contains("REMOVE")){
                 try{
                     String id = ParkingSpaceDto.getIdToString(requestMsg);
+                    System.out.println("id dao" + id);
                     String parking_space = this.findById(id);
                     if(Objects.isNull(parking_space)) throw new Exception();
                     if(dao.deleteParkingSpace(Integer.parseInt(id))){
@@ -69,6 +73,7 @@ public class DaoConnetionTCP extends ServerTCP{
                             "MENSAGEM: vaga de estacionamento inválida.");
                 }
             }
+            dao.closeConeetion();
 
         return response;
 

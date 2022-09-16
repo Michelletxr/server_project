@@ -1,11 +1,11 @@
 package br.com.imd.model;
 
-public class ResponseObj {
+public class ResponseMsg {
     String target;
     String action;
     String data;
 
-    public ResponseObj(String target, String action, String data) {
+    public ResponseMsg(String target, String action, String data) {
         this.target = target;
         this.action = action;
         this.data = data;

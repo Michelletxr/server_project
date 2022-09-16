@@ -21,6 +21,7 @@ public class ThreadImpl extends Thread{
             System.out.println("helo thread");
             String msg = null;
             try {
+
                 msg = server.receiveMsg(connetion.getInputStream());
                 String response = server.generateResponseToSend(msg);
                 server.sendMsg(response, connetion.getOutputStream());

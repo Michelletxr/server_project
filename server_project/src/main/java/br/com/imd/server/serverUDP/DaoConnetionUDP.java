@@ -2,6 +2,7 @@ package br.com.imd.server.serverUDP;
 
 import br.com.imd.dao.ParkingSpaceDao;
 import br.com.imd.dto.ParkingSpaceDto;
+import br.com.imd.factory.ConnetionFactory;
 import br.com.imd.model.ParkingSpace;
 
 import java.io.IOException;
@@ -38,10 +39,11 @@ public class DaoConnetionUDP extends ServerUDP {
             String msg = ParkingSpaceDto.convertStringToMsg(requestMsg);
             String data = null;
             System.out.println("MENSAGEM:" + msg );
+            this.dao.setConnection(ConnetionFactory.getConnetion());
 
             if(msg.contains("SAVE")){
                 try{
-                    ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToData(requestMsg);
+                    ParkingSpace parkingSpace = ParkingSpaceDto.convertRequestToParkingSpace(requestMsg);
                     String id = this.save(parkingSpace);
                     response =  ParkingSpaceDto.generateResponseObj("CLIENT", "SAVE",
                             "MENSAGEM: vaga de estacionamento gerada com sucesso id = "+id);
@@ -71,6 +73,7 @@ public class DaoConnetionUDP extends ServerUDP {
             }
 
             System.out.println(response);
+            this.dao.closeConeetion();
             //sendData(response, this.adrReceive, this.portReceive);
         return response;
     }

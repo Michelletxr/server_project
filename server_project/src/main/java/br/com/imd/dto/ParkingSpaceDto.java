@@ -1,6 +1,7 @@
 package br.com.imd.dto;
 import br.com.imd.model.ParkingSpace;
-import br.com.imd.model.ResponseObj;
+import br.com.imd.model.ResponseMsg;
+import br.com.imd.model.UserLogin;
 import com.google.common.base.Splitter;
 
 import java.util.Map;
@@ -9,13 +10,20 @@ import java.util.Map;
 public class ParkingSpaceDto {
 
     public static String getIdToString(String str){
-        String data = convertStringToProprietes(str).get("data");
-        String id = convertStringToProprietes(str).get("id");
+        String dados = convertStringToMsg(str);
+        String id = convertMsgToProprietes(dados).get("id");
         return id;
+    }
+    public static String getTokenToString(String str ){
+        String dados = str.replaceAll("[^A-Za-z0-9:,._-]", "");
+        String token = convertMsgToProprietes(dados).get("token");
+        System.out.println("TOKEN DTO: " + dados);
+        return token;
     }
 
     public static String getTargetToString(String str){
-        String target = convertStringToProprietes(str).get("target");
+        String msg = convertStringToMsg(str);
+        String target = convertMsgToProprietes(msg).get("target");
        return target;
     }
     public static String convertStringToMsg(String str){
@@ -23,14 +31,13 @@ public class ParkingSpaceDto {
         return dados;
     }
 
-    public static  Map<String, String>  convertStringToProprietes(String str){
-        String dados = convertStringToMsg(str);
+    public static  Map<String, String> convertMsgToProprietes(String str){
         Map<String, String> properties = Splitter.on(",")
                 .withKeyValueSeparator(":")
-                .split(dados);
+                .split(str);
         return properties;
     }
-    public static ParkingSpace convertRequestToData(String str){
+    public static ParkingSpace convertRequestToParkingSpace(String str){
         String dados = convertStringToMsg(str);
         Map<String, String> properties = Splitter.on(",")
                 .withKeyValueSeparator(":")
@@ -73,9 +80,22 @@ public class ParkingSpaceDto {
     }
 
     public static  String generateResponseObj( String target, String action, String data){
-        ResponseObj response = new ResponseObj(target, action, data);
+        ResponseMsg response = new ResponseMsg(target, action, data);
         return response.toString();
     }
 
-
+    public static UserLogin convertStringToUser(String str){
+        String dados = convertStringToMsg(str);
+        Map<String, String> properties = Splitter.on(",")
+                .withKeyValueSeparator(":")
+                .split(dados);
+        UserLogin user = new UserLogin();
+        if(properties.containsKey("login")){
+            user.setLogin(properties.get("login"));
+        }
+        if(properties.containsKey("password")){
+            user.setPassword(properties.get("password"));
+        }
+        return user;
+    }
 }

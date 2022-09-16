@@ -15,16 +15,36 @@ public class LoadBalancerTCP extends ServerTCP {
 
     private List<Integer> parkingsServers;
     private List<Integer> daoServers;
+    private List<Integer> authPorts;
     static boolean  jmeterLogged = false;
 
     public LoadBalancerTCP(Integer port) {
         this.port = port;
         parkingsServers = new ArrayList<>();
         daoServers = new ArrayList<>();
+        authPorts = new ArrayList<>();
         daoServers.add(8081);
         daoServers.add(8082);
         parkingsServers.add(8083);
         parkingsServers.add(8084);
+        authPorts.add(8085);
+        authPorts.add(8086);
+    }
+
+    public String validateTokenClient(String requestClient){
+        String serverResponse = null;
+            try {
+                String token = ParkingSpaceDto.getTokenToString(requestClient);
+                System.out.println("token " + token);
+                String request = "action: VALIDATE, token: " +  token;
+                serverResponse = dialogServices(request, authPorts);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+
+        return serverResponse;
     }
 
     public void startServer() throws IOException {
@@ -33,7 +53,9 @@ public class LoadBalancerTCP extends ServerTCP {
         jmeterLogged = true;
 
         while (true){
-            new Thread(new ThreadImpl(serverSocket.accept(), this)).start();
+            Socket client = serverSocket.accept();
+            //valida client antes de entrar aq
+            new Thread(new ThreadImpl(client, this)).start();
        }
 
     }
@@ -53,7 +75,8 @@ public class LoadBalancerTCP extends ServerTCP {
             byte[] dataAsByte = new byte[1042];
             inputstream.read(dataAsByte);
             String data = new String(dataAsByte);
-            msg = ParkingSpaceDto.convertStringToMsg(data);
+            //msg = ParkingSpaceDto.convertStringToMsg(data);
+            msg = data;
         }catch (Exception e){
             System.err.println(e);
         }
@@ -96,31 +119,53 @@ public class LoadBalancerTCP extends ServerTCP {
         System.out.println("request " + requestMsg);
         String response = null;
         String serverResponse =  null;
-        String requestService = requestMsg;
+        String responseAuth = null;
+        boolean userIsValid = true;
 
-        try{
-            while(!"CLIENT".equals(target)){
-                System.out.println("TARGET: " + target);
-                switch (target) {
-                    case "BD":
-                        serverResponse = dialogServices(requestService, daoServers);
-                        break;
-                    case "PARKING":
-                        serverResponse = dialogServices(requestService, parkingsServers);
-                        break;
-                    default:
-                        break;
-                }
-                requestService = serverResponse;
-                target = ParkingSpaceDto.getTargetToString(requestService);
+        if(!"AUTH".equals(target)) {
+            responseAuth = validateTokenClient(requestMsg);
+            if (responseAuth.contains("ERROR")) {
+                userIsValid = false;
             }
-            System.out.println("server"+ serverResponse);
-            response = serverResponse;
-        }catch (Exception e){
-            System.out.println("ocorreu um erro ao gerar resposta");
-            response = ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
-                    "MENSAGEM: erro ao requisitar serviço");
         }
+
+        if(userIsValid){
+            String requestService = requestMsg;
+            try{
+                while(!"CLIENT".equals(target)){
+                    System.out.println("TARGET: " + target);
+                    switch (target) {
+                        case "BD":
+                            serverResponse = dialogServices(requestService, daoServers);
+                            break;
+
+                        case "PARKING":
+                            serverResponse = dialogServices(requestService, parkingsServers);
+                            break;
+                        case "AUTH":
+                            serverResponse = dialogServices(requestService, authPorts);
+                            break;
+                        default:
+                            serverResponse = ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
+                                    "MENSAGEM: serviço solicitado não existe!");
+                            break;
+                    }
+                    requestService = serverResponse;
+                    target = ParkingSpaceDto.getTargetToString(requestService);
+                }
+                System.out.println("server"+ serverResponse);
+                response = serverResponse;
+            }catch (Exception e){
+                System.out.println("ocorreu um erro ao gerar resposta");
+                response = ParkingSpaceDto.generateResponseObj("CLIENT", "ERROR",
+                        "MENSAGEM: erro ao requisitar serviço");
+            }
+
+        }else{
+            //retorna a mensagem de erro;
+            response = responseAuth;
+        }
+
         return response;
     }
 

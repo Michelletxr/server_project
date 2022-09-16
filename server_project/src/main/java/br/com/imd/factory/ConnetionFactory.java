@@ -18,12 +18,17 @@ public class ConnetionFactory {
         this.dataSource = pool;
     }
 
-    public static Connection getConnetion() throws SQLException {
-
-        if(dataSource == null){
-            new ConnetionFactory();
+    public static Connection getConnetion()  {
+        Connection connection = null;
+        try {
+            if(dataSource == null){
+                new ConnetionFactory();
+            }
+            System.out.println("conexão estabelecida com sucesso!");
+            connection = dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        System.out.println("conexão estabelecida com sucesso!");
-        return dataSource.getConnection();
+        return connection;
     }
 }

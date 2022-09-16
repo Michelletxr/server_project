@@ -9,6 +9,8 @@ import java.util.List;
 
 
 public class ParkingSpaceDao {
+
+
     private Connection connection;
     public ParkingSpaceDao(){
     }
@@ -16,7 +18,7 @@ public class ParkingSpaceDao {
     public Integer saveParkingSpace(ParkingSpace newParkingSpace ) throws SQLException {
 
         Integer idParkingSpace = null;
-            this.connection = ConnetionFactory.getConnetion();
+          //  this.connection = ConnetionFactory.getConnetion();
             PreparedStatement stm =  connection.prepareStatement("INSERT INTO parking_space (license_plate," +
                     " hours_total, hours_init, value) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS);
             stm.setString(1, newParkingSpace.getLicensePlate()); //inserindo o numero da placa
@@ -32,7 +34,7 @@ public class ParkingSpaceDao {
             }
             result.close();
             stm.close();
-            connection.close();
+           // connection.close();
 
 
         return idParkingSpace;
@@ -41,13 +43,13 @@ public class ParkingSpaceDao {
 
         boolean isDelet = false;
         try{
-            this.connection = ConnetionFactory.getConnetion();
+           // this.connection = ConnetionFactory.getConnetion();
             PreparedStatement stm = connection.prepareStatement("DELETE FROM parking_space WHERE id=?");
             stm.setInt(1, id);
             stm.execute();
             stm.close();
             isDelet = true;
-            connection.close();
+           // connection.close();
         }catch (SQLException e){
            System.out.println("erro ao tentar deletar");
         }
@@ -59,7 +61,7 @@ public class ParkingSpaceDao {
         ParkingSpace parkingSpace = null;
 
 
-            this.connection = ConnetionFactory.getConnetion();
+           // this.connection = ConnetionFactory.getConnetion();
 
             PreparedStatement stm = connection.prepareStatement("SELECT * FROM parking_space WHERE id=?");
             stm.setInt(1, Integer.parseInt(id));
@@ -75,10 +77,22 @@ public class ParkingSpaceDao {
             }
             result.close();
             stm.close();
-            connection.close();
+            //connection.close();
 
 
         return parkingSpace;
+    }
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    public void closeConeetion(){
+        try {
+            this.connection.close();
+        } catch (SQLException e) {
+            System.out.println("erro ao tentar fechar conexão");
+            throw new RuntimeException(e);
+        }
     }
 
     public List<ParkingSpace> listParkingSpace() {
