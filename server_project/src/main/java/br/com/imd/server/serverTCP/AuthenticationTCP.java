@@ -2,6 +2,7 @@ package br.com.imd.server.serverTCP;
 
 import br.com.imd.dto.ParkingSpaceDto;
 import br.com.imd.model.JWTImpl;
+import br.com.imd.model.ThreadImpl;
 import br.com.imd.model.UserLogin;
 
 import java.io.IOException;

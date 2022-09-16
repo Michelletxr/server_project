@@ -3,6 +3,7 @@ package br.com.imd.server.serverTCP;
 import br.com.imd.dto.ParkingSpaceDto;
 import br.com.imd.model.ParkingImpl;
 import br.com.imd.model.ParkingSpace;
+import br.com.imd.model.ThreadImpl;
 
 import java.io.IOException;
 import java.net.InetAddress;

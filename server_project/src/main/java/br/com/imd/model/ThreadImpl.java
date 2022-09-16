@@ -1,4 +1,6 @@
-package br.com.imd.server.serverTCP;
+package br.com.imd.model;
+import br.com.imd.server.serverTCP.ServerTCP;
+
 import java.io.*;
 import java.net.Socket;
 

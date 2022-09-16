@@ -4,6 +4,7 @@ import br.com.imd.dao.ParkingSpaceDao;
 import br.com.imd.dto.ParkingSpaceDto;
 import br.com.imd.factory.ConnetionFactory;
 import br.com.imd.model.ParkingSpace;
+import br.com.imd.model.ThreadImpl;
 
 import java.io.*;
 import java.net.ServerSocket;

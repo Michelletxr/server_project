@@ -1,6 +1,7 @@
 package br.com.imd.server.serverTCP;
 
 import br.com.imd.dto.ParkingSpaceDto;
+import br.com.imd.model.ThreadImpl;
 
 import java.io.*;
 import java.net.*;
