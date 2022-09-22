@@ -25,7 +25,7 @@ public class ParkingUDP extends ServerUDP {
             if(resquestMsg.contains("CREATE")) {
                 ParkingSpace parkingSpace = ParkingSpaceDto.convertStringToParkingSpace(resquestMsg);
                 Integer taxa = parking.createTaxa(parkingSpace.getHoursInit(), parkingSpace.getHours());
-                String data = "MENSAGEM: carro retirado; valor a pagar = " +  parkingSpace.getValue() + " sua taxa = " + taxa;
+                String data = "MENSAGEM: carro retirado; valor inicial = " +  parkingSpace.getValue() + " sua taxa = " + taxa;
                 response = ParkingSpaceDto.generateResponseObj("CLIENT", "CREATE", data);
             }
             System.out.println("response " + response);

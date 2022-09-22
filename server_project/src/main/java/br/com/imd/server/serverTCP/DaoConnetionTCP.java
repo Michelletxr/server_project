@@ -3,6 +3,7 @@ package br.com.imd.server.serverTCP;
 import br.com.imd.dao.ParkingSpaceDao;
 import br.com.imd.dto.ParkingSpaceDto;
 import br.com.imd.factory.ConnetionFactory;
+import br.com.imd.model.ObjRequest;
 import br.com.imd.model.ParkingSpace;
 import br.com.imd.model.ThreadImpl;
 

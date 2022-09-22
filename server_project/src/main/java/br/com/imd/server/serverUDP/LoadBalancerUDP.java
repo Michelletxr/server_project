@@ -8,10 +8,6 @@ import java.util.List;
 
 public class LoadBalancerUDP extends ServerUDP {
     private Integer myPort;
-    private Integer daoPort;
-    private Integer parkingPort;
-    private InetAddress clientAdrr;
-    private Integer clientPort;
     private DatagramSocket clintSocket;
     private List<Integer> parkingsServers;
     private List<Integer> daoServers;

@@ -47,7 +47,7 @@ public class ParkingTCP extends ServerTCP {
             if(requestMsg.contains("CREATE")) {
                 ParkingSpace parkingSpace = ParkingSpaceDto.convertStringToParkingSpace(requestMsg);
                 Integer taxa = parking.createTaxa(parkingSpace.getHoursInit(), parkingSpace.getHours());
-                String data = "MENSAGEM: carro retirado; valor a pagar = " +  parkingSpace.getValue() + " sua taxa = " + taxa;
+                String data = "MENSAGEM: carro retirado; valor inicial = " +  parkingSpace.getValue() + " sua taxa = " + taxa;
                 response = ParkingSpaceDto.generateResponseObj("CLIENT", "CREATE", data);
             }
 
